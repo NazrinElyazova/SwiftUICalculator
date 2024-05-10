@@ -42,6 +42,9 @@ enum CalculationButton: String {
     }
 }
 
+enum Operation {
+    case add, subtract, multiply, divide, none
+}
 struct ContentView: View {
     let buttons: [[CalculationButton]] = [
         [.clear, .negative, .percent, .division],
@@ -50,6 +53,10 @@ struct ContentView: View {
         [.one, .two, .three, .add],
         [.zero, .decimal, .equal]
     ]
+    @State var value = "0"
+    @State var runningNumber = 0
+    @State var currentOperation: Operation = .none
+    
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
@@ -58,9 +65,9 @@ struct ContentView: View {
                 //TEXT DISPLAY
                 HStack {
                     Spacer()
-                    Text("0")
+                    Text(value)
                         .bold()
-                        .font(.system(size: 53))
+                        .font(.system(size: 100))
                         .foregroundStyle(.white)
                 }.padding()
                 ForEach(buttons, id: \.self) {
@@ -69,7 +76,7 @@ struct ContentView: View {
                         ForEach(row, id: \.self) {
                             item in
                             Button(action: {
-                                
+                                self.didTap(button: item)
                             }, label: {
                                 Text(item.rawValue)
                                     .font(.system(size: 32))
@@ -78,7 +85,6 @@ struct ContentView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(self.buttonWidth(item: item) / 2)
                             })
-                            
                         }
                     }
                     .padding(.bottom, 3)
@@ -86,7 +92,75 @@ struct ContentView: View {
             }
         }
     }
+    
+    func didTap(button: CalculationButton) {
+        switch button {
+            
+        case .add, .subtract, .multiplication, .division, .equal:
+            if button == .add {
+                self.currentOperation = .add
+                self.runningNumber = Int(self.value) ?? 0
+            }
+            
+            else if button == .subtract {
+                self.currentOperation = .subtract
+                self.runningNumber = Int(self.value) ?? 0
+            }
+            
+            else if button == .division {
+                self.currentOperation = .divide
+                self.runningNumber = Int(self.value) ?? 0
+            }
+            
+            else if button == .multiplication {
+                self.currentOperation = .multiply
+                self.runningNumber = Int(self.value) ?? 0
+            }
+            
+            else if button == .equal {
+                
+                let runningValue = self.runningNumber
+                let currentValue = Int(self.value) ?? 0
+                
+                switch self.currentOperation {
+                    
+                case .add: self.value = "\(runningValue + currentValue)"
+                    
+                case .subtract:  self.value = "\(runningValue - currentValue)"
+                    
+                case .multiply:  self.value = "\(runningValue * currentValue)"
+                    
+                case .divide:  self.value = "\(runningValue / currentValue)"
+                    
+                case .none:
+                    break
+                }
+            }
+            
+            if button != .equal {
+                self.value = "0"
+            }
+            
+        case .clear:
+            self.value = "0"
+            
+        case .decimal, .negative, .percent:
+            break
+            
+        default:
+            let number = button.rawValue
+            if self.value == "0" {
+                value = number
+            } else {
+                self.value = "\(self.value)\(number)"
+            }
+        }
+    }
+    
     func buttonWidth(item: CalculationButton) -> CGFloat {
+        if item == .zero {
+            return (UIScreen.main.bounds.width - (4*12)) / 2
+        }
         return (UIScreen.main.bounds.width - (5*12)) / 4
     }
     
